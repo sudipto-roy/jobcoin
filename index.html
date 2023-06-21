@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Jobcoin Address Login</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+      }
+
+      input[type="text"] {
+        padding: 10px;
+        width: 160px;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Jobcoin Address Login</h1>
+    <br />
+    <br />
+
+    <input type="text" id="jobcoinAddressInput" placeholder="Jobcoin Address" />
+    <button id="loginButton">Login</button>
+    <br />
+    <br />
+    <button id="generateAddressButton">Generate new Jobcoin Address</button>
+
+    <script>
+      function getDefaultUserObj(address) {
+        return {
+          address,
+          currentBalance: 100,
+          transactions: [],
+        };
+      }
+      // Function to generate a random 10-digit string
+      function generateRandomString() {
+        var chars = "0123456789";
+        var result = "";
+        for (var i = 0; i < 10; i++) {
+          result += chars[Math.floor(Math.random() * chars.length)];
+        }
+        return result;
+      }
+
+      // Event listener for the "Generate Jobcoin Address" button
+      document
+        .getElementById("generateAddressButton")
+        .addEventListener("click", function () {
+          var randomAddress = generateRandomString();
+          document.getElementById("jobcoinAddressInput").value = randomAddress;
+          // update in database
+          const newUserObj = getDefaultUserObj(randomAddress);
+          var database = JSON.parse(localStorage.getItem("database"));
+          database.push(newUserObj);
+          localStorage.setItem('database', JSON.stringify(database));
+        });
+
+      // Event listener for the "Login" button
+      document
+        .getElementById("loginButton")
+        .addEventListener("click", function () {
+          var inputAddress = document.getElementById(
+            "jobcoinAddressInput"
+          ).value;
+          var database = JSON.parse(localStorage.getItem("database"));
+          var addressPresentInDatabase = database.filter(el => el.address == inputAddress)
+
+          if (addressPresentInDatabase.length) {
+            localStorage.setItem("currently_loggedin", inputAddress);
+            window.location.href = "./landing.html";
+          } else {
+            alert("Invalid Jobcoin Address");
+          }
+        });
+    </script>
+  </body>
+</html>

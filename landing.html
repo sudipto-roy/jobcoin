@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Jobcoin Wallet</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+      }
+
+      input[type="text"] {
+        padding: 10px;
+        width: 100px;
+      }
+
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+
+      table {
+        border-collapse: collapse;
+        margin-top: 20px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      th,
+      td {
+        padding: 10px;
+        border: 1px solid #ddd;
+      }
+
+      h1 {
+        position: relative;
+      }
+
+      .logout {
+        position: absolute;
+        right: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Jobcoin Wallet <button class="logout" id="logout">Logout</button></h1>
+
+    <div id="welcomeMessage"></div>
+
+    <br />
+    <br />
+    <br />
+
+    <h2>Send Jobcoins</h2>
+    <input type="text" id="sendAddressInput" placeholder="Recipient Address" />
+    <input type="text" id="sendAmountInput" placeholder="Amount" />
+    <button id="sendButton">Send</button>
+
+    <br />
+    <br />
+    <br />
+
+    <h2>Your Transactions</h2>
+    <table id="transactionTable">
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Address</th>
+          <th>Amount</th>
+          <th>Balance</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <script>
+      // Read from local storage
+      var currentlyLoggedIn = localStorage.getItem("currently_loggedin");
+      var database = JSON.parse(localStorage.getItem("database"));
+
+      // Display transactions of currently logged in user
+      var transactionTable = document.getElementById("transactionTable");
+      var transactionTableBody =
+        transactionTable.getElementsByTagName("tbody")[0];
+
+      var currentUser = database.find(function (user) {
+        return user.address == currentlyLoggedIn;
+      });
+
+      // Display welcome message
+      document.getElementById(
+        "welcomeMessage"
+      ).textContent = `Hello  ${currentlyLoggedIn}, your balance is ${currentUser.currentBalance} Jobcoins`;
+
+      if (currentUser.transactions.length) {
+        currentUser.transactions.forEach(function (transaction) {
+          var row = transactionTableBody.insertRow();
+          row.insertCell().textContent = transaction.type;
+          row.insertCell().textContent = transaction.address;
+          row.insertCell().textContent = transaction.amount;
+          row.insertCell().textContent = transaction.balance;
+        });
+      }
+
+      // Send Jobcoins
+      document
+        .getElementById("sendButton")
+        .addEventListener("click", function () {
+          var recipientAddress =
+            document.getElementById("sendAddressInput").value;
+          var sendAmount = parseFloat(
+            document.getElementById("sendAmountInput").value
+          );
+
+          // Update current balance and transactions
+          var currentUserIndex = database.findIndex(function (user) {
+            return user.address == currentlyLoggedIn;
+          });
+          debugger;
+          if (currentUserIndex !== -1) {
+            var currentUser = database[currentUserIndex];
+            var currentBalance = parseFloat(currentUser.currentBalance);
+
+            if (currentBalance >= sendAmount) {
+              // Deduct the amount from the current balance
+              currentUser.currentBalance = (
+                currentBalance - sendAmount
+              ).toFixed(2);
+
+              // Update transaction
+              var newTransaction = {
+                type: "send",
+                address: recipientAddress,
+                amount: sendAmount.toFixed(2),
+                balance: currentUser.currentBalance,
+              };
+              currentUser.transactions.push(newTransaction);
+
+              // Update local storage
+              localStorage.setItem("database", JSON.stringify(database));
+
+              // Display updated transaction in the table
+              var row = transactionTableBody.insertRow();
+              row.insertCell().textContent = newTransaction.type;
+              row.insertCell().textContent = newTransaction.address;
+              row.insertCell().textContent = newTransaction.amount;
+              row.insertCell().textContent = newTransaction.balance;
+
+              // Clear input fields
+              document.getElementById("sendAddressInput").value = "";
+              document.getElementById("sendAmountInput").value = "";
+
+              alert("Jobcoins sent successfully!");
+            } else {
+              alert("Insufficient balance. Please enter a valid amount.");
+            }
+          }
+        });
+
+      // logout
+      document
+        .getElementById("logout")
+        .addEventListener("click", function () {
+            localStorage.removeItem("currently_loggedin");
+            window.location.href = "./index.html";
+        });
+    </script>
+  </body>
+</html>
